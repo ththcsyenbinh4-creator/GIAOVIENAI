@@ -15,9 +15,15 @@ import {
   GeneratedQuestion,
 } from '@/types/domain';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const getOpenAI = () => {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY is not defined');
+  }
+  return new OpenAI({
+    apiKey: apiKey,
+  });
+};
 
 /**
  * Analyze document content and extract key information
@@ -47,6 +53,7 @@ Hãy phân tích và trả về JSON với cấu trúc sau:
 
 Chỉ trả về JSON, không có text khác.`;
 
+  const openai = getOpenAI();
   const response = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [{ role: 'user', content: prompt }],
@@ -139,6 +146,7 @@ Trả về JSON với cấu trúc:
 
 Chỉ trả về JSON, không có text khác.`;
 
+  const openai = getOpenAI();
   const response = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [{ role: 'user', content: prompt }],
@@ -201,6 +209,7 @@ Trả về JSON:
 
 Chỉ trả về JSON.`;
 
+  const openai = getOpenAI();
   const response = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [{ role: 'user', content: prompt }],
@@ -248,6 +257,7 @@ Trả về JSON:
 
 Chỉ trả về JSON.`;
 
+  const openai = getOpenAI();
   const response = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [{ role: 'user', content: prompt }],
@@ -294,6 +304,7 @@ Trả về JSON:
   "summary": "Nội dung tóm tắt"
 }`;
 
+  const openai = getOpenAI();
   const response = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [{ role: 'user', content: prompt }],
