@@ -353,7 +353,20 @@ Hãy tạo nội dung đầy đủ, chất lượng cao cho từng phần.`;
 
     const generationResult = await model.generateContent(fullPrompt);
     const responseText = generationResult.response.text();
-    const parsed = JSON.parse(responseText);
+
+    if (!responseText) {
+      throw new Error('Gemini returned empty response');
+    }
+
+    let parsed;
+    try {
+      parsed = JSON.parse(responseText);
+    } catch (e) {
+      console.warn('JSON parse failed, attempting cleanup', responseText.substring(0, 100));
+      // Attempt generic cleanup if markdown code blocks identify
+      const cleanText = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+      parsed = JSON.parse(cleanText);
+    }
 
     // Normalize the response
     const result: GeneratedLessonContent = {
