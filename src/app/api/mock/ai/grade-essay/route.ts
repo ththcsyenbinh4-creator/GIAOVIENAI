@@ -35,14 +35,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if real AI is enabled and OpenAI API key is configured
+    // Check if real AI is enabled and Gemini API key is configured
     const useRealAI = process.env.USE_REAL_AI === 'true';
+    const hasGeminiKey = !!(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY);
 
-    if (!useRealAI || !process.env.OPENAI_API_KEY) {
+    if (!useRealAI || !hasGeminiKey) {
       if (!useRealAI) {
         console.log('USE_REAL_AI=false, using heuristic grading');
       } else {
-        console.warn('OpenAI API key not configured, falling back to heuristic grading');
+        console.warn('Gemini API key not configured, falling back to heuristic grading');
       }
       const result = gradeEssayMock(body.answerText, body.maxScore, body.questionPrompt);
       return NextResponse.json({
@@ -51,8 +52,8 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Grade essay using OpenAI
-    const result = await gradeEssayWithOpenAI(
+    // Grade essay using Gemini
+    const result = await gradeEssayWithGemini(
       body.answerText,
       body.maxScore,
       body.questionPrompt,
@@ -61,12 +62,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: { ...result, source: 'openai' },
+      data: { ...result, source: 'gemini' },
     });
   } catch (error) {
     console.error('Error grading essay:', error);
 
-    // If OpenAI fails, fall back to heuristic grading
+    // If AI fails, fall back to heuristic grading
     try {
       const body: GradeEssayRequest = await request.clone().json();
       const result = gradeEssayMock(
@@ -88,9 +89,9 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Grade essay using OpenAI API
+ * Grade essay using Gemini API
  */
-async function gradeEssayWithOpenAI(
+async function gradeEssayWithGemini(
   answerText: string,
   maxScore: number,
   questionPrompt?: string,
@@ -130,21 +131,17 @@ Trả về JSON với format sau (KHÔNG có text khác ngoài JSON):
   "comment": "Nhận xét tổng quát về bài làm"
 }`;
 
-  const openai = getOpenAI();
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPrompt }
-    ],
-    response_format: { type: 'json_object' },
+  const fullPrompt = `${systemPrompt}\n\n${userPrompt}`;
+
+  const model = getGeminiModel('gemini-1.5-flash', {
+    responseMimeType: 'application/json',
     temperature: 0.3, // Lower temperature for more consistent grading
-    max_tokens: 1024,
   });
 
-  const content = response.choices[0]?.message?.content || '{}';
+  const result = await model.generateContent(fullPrompt);
+  const responseText = result.response.text();
 
-  const jsonMatch = content.match(/\{[\s\S]*\}/);
+  const jsonMatch = responseText.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
     throw new Error('No JSON object found in response');
   }
