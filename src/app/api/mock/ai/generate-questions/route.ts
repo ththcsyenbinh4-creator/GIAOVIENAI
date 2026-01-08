@@ -3,9 +3,15 @@ import { GeneratedQuestion, GenerateQuestionsRequest } from '@/types/domain';
 import OpenAI from 'openai';
 
 // Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const getOpenAI = () => {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY is not defined');
+  }
+  return new OpenAI({
+    apiKey: apiKey,
+  });
+};
 
 /**
  * POST /api/mock/ai/generate-questions
@@ -136,8 +142,8 @@ async function generateQuestionsWithOpenAI(
   const typeInstruction = questionType === 'mcq'
     ? 'Tất cả câu hỏi phải là trắc nghiệm (mcq).'
     : questionType === 'essay'
-    ? 'Tất cả câu hỏi phải là tự luận (essay).'
-    : `Khoảng ${Math.floor(count * 0.7)} câu trắc nghiệm (mcq) và ${Math.ceil(count * 0.3)} câu tự luận (essay).`;
+      ? 'Tất cả câu hỏi phải là tự luận (essay).'
+      : `Khoảng ${Math.floor(count * 0.7)} câu trắc nghiệm (mcq) và ${Math.ceil(count * 0.3)} câu tự luận (essay).`;
 
   const systemPrompt = `Bạn là một giáo viên giỏi, chuyên tạo câu hỏi kiểm tra cho học sinh Việt Nam.
 Bạn tạo câu hỏi chất lượng cao, rõ ràng, chính xác về ngữ pháp và nội dung.
@@ -173,6 +179,7 @@ Trả về JSON array với format sau (KHÔNG có text khác ngoài JSON):
   }
 ]`;
 
+  const openai = getOpenAI();
   const response = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [

@@ -15,9 +15,15 @@ import {
 } from '@/types/domain';
 
 // Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const getOpenAI = () => {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY is not defined');
+  }
+  return new OpenAI({
+    apiKey: apiKey,
+  });
+};
 
 // Maximum content length
 const MAX_CONTENT_LENGTH = 6000;
@@ -105,6 +111,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Call OpenAI
+    const openai = getOpenAI();
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [

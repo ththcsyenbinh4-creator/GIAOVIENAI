@@ -10,9 +10,15 @@ import {
   Worksheet,
 } from '@/types/domain';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const getOpenAI = () => {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY is not defined');
+  }
+  return new OpenAI({
+    apiKey: apiKey,
+  });
+};
 
 // Default lesson templates
 const DEFAULT_45_MIN_STRUCTURE: Array<{ type: LessonStepType; title: string; duration: number }> = [
@@ -68,10 +74,10 @@ export async function POST(request: Request) {
     // Get base structure
     const baseStructure = customSteps && customSteps.length > 0
       ? customSteps.map(step => ({
-          type: step.type,
-          title: step.title || getDefaultTitleForType(step.type),
-          duration: step.duration || getDefaultDurationForType(step.type),
-        }))
+        type: step.type,
+        title: step.title || getDefaultTitleForType(step.type),
+        duration: step.duration || getDefaultDurationForType(step.type),
+      }))
       : getDefaultStructure(targetDuration);
 
     // Filter structure based on include flags
@@ -348,17 +354,19 @@ ${structure.map((s, i) => `${i + 1}. ${s.title} (${s.type}) - ${s.duration} phú
 Hãy tạo nội dung đầy đủ, chất lượng cao cho từng phần.`;
 
   try {
-    const response = await openai.chat.completions.create({
+    const openai = getOpenAI();
+    const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
-        { role: 'system', content: systemPrompt },
+        { role: 'system', content: systemPrompt }, // Assuming systemPrompt is still used, or SYSTEM_PROMPT is defined elsewhere
         { role: 'user', content: userPrompt },
       ],
       temperature: 0.7,
+      max_tokens: 4000,
       response_format: { type: 'json_object' },
     });
 
-    const responseText = response.choices[0]?.message?.content || '{}';
+    const responseText = completion.choices[0]?.message?.content || '{}';
     const parsed = JSON.parse(responseText);
 
     // Normalize the response

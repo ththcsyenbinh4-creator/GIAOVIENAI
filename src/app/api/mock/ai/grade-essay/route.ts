@@ -3,9 +3,15 @@ import { GradeEssayRequest, GradeEssayResponse } from '@/types/domain';
 import OpenAI from 'openai';
 
 // Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const getOpenAI = () => {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY is not defined');
+  }
+  return new OpenAI({
+    apiKey: apiKey,
+  });
+};
 
 /**
  * POST /api/mock/ai/grade-essay
@@ -135,19 +141,20 @@ Trả về JSON với format sau (KHÔNG có text khác ngoài JSON):
   "comment": "Nhận xét tổng quát về bài làm"
 }`;
 
+  const openai = getOpenAI();
   const response = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [
       { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPrompt },
+      { role: 'user', content: userPrompt }
     ],
+    response_format: { type: 'json_object' },
     temperature: 0.3, // Lower temperature for more consistent grading
     max_tokens: 1024,
   });
 
   const content = response.choices[0]?.message?.content || '{}';
 
-  // Extract JSON from response
   const jsonMatch = content.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
     throw new Error('No JSON object found in response');

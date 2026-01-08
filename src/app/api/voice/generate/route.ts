@@ -15,9 +15,15 @@ import {
 } from '@/types/domain';
 
 // Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const getOpenAI = () => {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY is not defined');
+  }
+  return new OpenAI({
+    apiKey: apiKey,
+  });
+};
 
 // Maximum text length (approximately 4000 characters = ~3 minutes of audio)
 const MAX_TEXT_LENGTH = 4000;
@@ -90,7 +96,8 @@ export async function POST(request: NextRequest) {
     // Add context instruction for better Vietnamese pronunciation
     const processedText = prepareTextForTTS(text, mode, language);
 
-    // Generate audio using OpenAI TTS
+    // Call OpenAI TTS API
+    const openai = getOpenAI();
     const mp3Response = await openai.audio.speech.create({
       model: 'tts-1',           // Use tts-1 for faster generation, tts-1-hd for higher quality
       voice: voice as 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer',
