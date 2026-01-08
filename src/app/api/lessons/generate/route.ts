@@ -351,8 +351,8 @@ Hãy tạo nội dung đầy đủ, chất lượng cao cho từng phần.`;
       temperature: 0.7,
     });
 
-    const result = await model.generateContent(fullPrompt);
-    const responseText = result.response.text();
+    const generationResult = await model.generateContent(fullPrompt);
+    const responseText = generationResult.response.text();
     const parsed = JSON.parse(responseText);
 
     // Normalize the response
