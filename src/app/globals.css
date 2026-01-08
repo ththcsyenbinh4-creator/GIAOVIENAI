@@ -1,0 +1,420 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Premium Monotone Design System - Unified Semantic Tokens */
+@layer base {
+  /* Light Theme (default) - High Contrast */
+  :root {
+    /* Backgrounds - more contrast between layers */
+    --bg-app: #EAEAEA;
+    --bg-surface: #FFFFFF;
+    --bg-soft: #E0E0E0;
+    --bg-elevated: #FFFFFF;
+
+    /* Text - darker for better readability */
+    --text-primary: #111111;
+    --text-secondary: #555555;
+    --text-tertiary: #888888;
+
+    /* Borders - stronger visibility */
+    --border-default: rgba(0, 0, 0, 0.12);
+    --border-hover: rgba(0, 0, 0, 0.20);
+    --border-strong: rgba(0, 0, 0, 0.25);
+
+    /* Interactive - high contrast */
+    --btn-primary-bg: #111111;
+    --btn-primary-text: #FFFFFF;
+
+    /* Accent (vibrant blue) */
+    --accent: #0066CC;
+    --accent-soft: rgba(0, 102, 204, 0.12);
+
+    /* Semantic */
+    --color-success: #34C759;
+    --color-warning: #FF9500;
+    --color-error: #FF3B30;
+  }
+
+  /* Dark Theme - class-based */
+  .dark {
+    /* Backgrounds - Dark - softer black */
+    --bg-app: #0A0A0A;
+    --bg-surface: #1C1C1E;
+    --bg-soft: #2C2C2E;
+    --bg-elevated: #1C1C1E;
+
+    /* Text - Dark - softer white */
+    --text-primary: #E5E5E5;
+    --text-secondary: #A1A1AA;
+    --text-tertiary: #71717A;
+
+    /* Borders - Dark */
+    --border-default: rgba(255, 255, 255, 0.08);
+    --border-hover: rgba(255, 255, 255, 0.15);
+    --border-strong: rgba(255, 255, 255, 0.20);
+
+    /* Interactive - Dark - softer contrast */
+    --btn-primary-bg: #E5E5E5;
+    --btn-primary-text: #0A0A0A;
+
+    /* Accent stays same */
+    --accent: #0A84FF;
+    --accent-soft: rgba(10, 132, 255, 0.2);
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: var(--bg-app);
+    color: var(--text-primary);
+    font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  ::selection {
+    background-color: var(--accent-soft);
+  }
+
+  /* Custom scrollbar - minimal */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--text-tertiary);
+  }
+}
+
+@layer components {
+  /* Glass effect - premium with enhanced blur */
+  .glass {
+    background-color: rgba(255, 255, 255, 0.85);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+
+  .dark .glass {
+    background-color: rgba(28, 28, 30, 0.85);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Logo floating animation */
+  .logo-float {
+    animation: logoFloat 3s ease-in-out infinite;
+  }
+
+  @keyframes logoFloat {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-8px) scale(1.02); }
+  }
+
+  /* Logo pulse glow */
+  .logo-pulse {
+    animation: logoPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes logoPulse {
+    0%, 100% {
+      box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.15);
+    }
+    50% {
+      box-shadow: 0 0 30px 10px rgba(255, 255, 255, 0.2);
+    }
+  }
+
+  /* Text shimmer effect - soft contrast */
+  .text-shimmer {
+    background: linear-gradient(
+      90deg,
+      #D4D4D4 0%,
+      #D4D4D4 40%,
+      #F5F5F5 50%,
+      #D4D4D4 60%,
+      #D4D4D4 100%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: textShimmer 2.5s ease-in-out infinite;
+  }
+
+  @keyframes textShimmer {
+    0% { background-position: 100% center; }
+    100% { background-position: -100% center; }
+  }
+
+  /* Dark mode text shimmer - soft contrast */
+  .dark .text-shimmer {
+    background: linear-gradient(
+      90deg,
+      #525252 0%,
+      #525252 40%,
+      #262626 50%,
+      #525252 60%,
+      #525252 100%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Sparkle icon animation */
+  .sparkle-animate {
+    animation: sparkleRotate 4s linear infinite;
+  }
+
+  @keyframes sparkleRotate {
+    0% { transform: rotate(0deg) scale(1); }
+    25% { transform: rotate(5deg) scale(1.05); }
+    50% { transform: rotate(0deg) scale(1); }
+    75% { transform: rotate(-5deg) scale(1.05); }
+    100% { transform: rotate(0deg) scale(1); }
+  }
+
+  /* Fade in up animation for subtitle */
+  .fade-in-up {
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out 0.5s forwards;
+  }
+
+  @keyframes fadeInUp {
+    0% {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Card with gradient overlay - KEEP shimmer effect */
+  .card-premium {
+    position: relative;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .card-premium::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(110deg, transparent 25%, var(--border-default) 50%, transparent 75%);
+    background-size: 200% 100%;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+
+  .card-premium:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-2px);
+  }
+
+  .card-premium:hover::before {
+    opacity: 1;
+    animation: shimmer 2s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  /* Border glow - thin gray border with moving light dot */
+  .border-glow {
+    position: relative;
+    border: 1px solid rgba(150, 150, 150, 0.4);
+  }
+
+  .dark .border-glow {
+    border-color: rgba(150, 150, 150, 0.3);
+  }
+
+  .border-glow::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: inherit;
+    background: conic-gradient(
+      from var(--border-glow-angle, 0deg),
+      transparent 0%,
+      transparent 38%,
+      rgba(255, 255, 255, 0.5) 42%,
+      rgba(255, 255, 255, 1) 50%,
+      rgba(255, 255, 255, 0.5) 58%,
+      transparent 62%,
+      transparent 100%
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    padding: 3px;
+    animation: borderGlowRotate 3.75s linear infinite;
+    filter: blur(2px);
+  }
+
+  @property --border-glow-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+  }
+
+  @keyframes borderGlowRotate {
+    0% { --border-glow-angle: 0deg; }
+    100% { --border-glow-angle: 360deg; }
+  }
+
+  /* Glow button effect - KEEP */
+  .btn-glow {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-glow::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    background: linear-gradient(90deg, transparent, var(--border-hover), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .btn-glow:hover::before {
+    opacity: 1;
+    animation: btn-shimmer 1.5s ease-in-out infinite;
+  }
+
+  @keyframes btn-shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  /* Text gradient - subtle monotone */
+  .text-gradient {
+    background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Focus ring with accent */
+  .focus-accent {
+    outline: none;
+  }
+
+  .focus-accent:focus-visible {
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+
+  /* Input focus glow */
+  .input-glow:focus {
+    box-shadow: 0 0 0 3px var(--accent-soft);
+    border-color: var(--accent);
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border-default), transparent);
+  }
+}
+
+@layer utilities {
+  /* Animation utilities */
+  .animate-in {
+    animation: fadeIn 0.5s ease-out forwards;
+  }
+
+  .animate-in-up {
+    animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.15s ease-out forwards;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes scaleIn {
+    0% { opacity: 0; transform: scale(0.95); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  /* Stagger animations */
+  .stagger-1 { animation-delay: 0.1s; }
+  .stagger-2 { animation-delay: 0.2s; }
+  .stagger-3 { animation-delay: 0.3s; }
+  .stagger-4 { animation-delay: 0.4s; }
+  .stagger-5 { animation-delay: 0.5s; }
+
+  /* Hide scrollbar */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Flashcard flip animation utilities */
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+
+  .transform-style-3d {
+    transform-style: preserve-3d;
+  }
+
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+
+  /* Bell shake animation for notifications */
+  @keyframes shake {
+    0%, 100% { transform: rotate(0deg); }
+    10%, 30%, 50%, 70%, 90% { transform: rotate(-10deg); }
+    20%, 40%, 60%, 80% { transform: rotate(10deg); }
+  }
+
+  .animate-shake {
+    animation: shake 0.5s ease-in-out infinite;
+  }
+}
