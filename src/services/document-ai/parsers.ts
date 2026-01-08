@@ -14,9 +14,14 @@ let pdfjsLib: typeof import('pdfjs-dist') | null = null;
 
 async function getPdfJs() {
   if (!pdfjsLib) {
-    // Dynamic import to avoid server-side bundle issues
-    pdfjsLib = await import('pdfjs-dist');
-    pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+    try {
+      // Dynamic import to avoid server-side bundle issues
+      pdfjsLib = await import('pdfjs-dist');
+      pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+    } catch (e) {
+      console.error('Failed to load pdfjs-dist', e);
+      throw new Error('PDF processing is not available (missing pdfjs-dist)');
+    }
   }
   return pdfjsLib;
 }
