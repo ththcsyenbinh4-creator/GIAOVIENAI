@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import { getGeminiModel } from '@/lib/gemini';
 import {
   Lesson,
   LessonStep,
@@ -9,16 +9,6 @@ import {
   FlashcardDeck,
   Worksheet,
 } from '@/types/domain';
-
-const getOpenAI = () => {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new Error('OPENAI_API_KEY is not defined');
-  }
-  return new OpenAI({
-    apiKey: apiKey,
-  });
-};
 
 // Default lesson templates
 const DEFAULT_45_MIN_STRUCTURE: Array<{ type: LessonStepType; title: string; duration: number }> = [
@@ -354,19 +344,15 @@ ${structure.map((s, i) => `${i + 1}. ${s.title} (${s.type}) - ${s.duration} phú
 Hãy tạo nội dung đầy đủ, chất lượng cao cho từng phần.`;
 
   try {
-    const openai = getOpenAI();
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: systemPrompt }, // Assuming systemPrompt is still used, or SYSTEM_PROMPT is defined elsewhere
-        { role: 'user', content: userPrompt },
-      ],
+    const fullPrompt = `${systemPrompt}\n\n${userPrompt}`;
+
+    const model = getGeminiModel('gemini-1.5-flash', {
+      responseMimeType: 'application/json',
       temperature: 0.7,
-      max_tokens: 4000,
-      response_format: { type: 'json_object' },
     });
 
-    const responseText = completion.choices[0]?.message?.content || '{}';
+    const result = await model.generateContent(fullPrompt);
+    const responseText = result.response.text();
     const parsed = JSON.parse(responseText);
 
     // Normalize the response

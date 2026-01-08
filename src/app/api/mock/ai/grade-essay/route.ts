@@ -1,17 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GradeEssayRequest, GradeEssayResponse } from '@/types/domain';
-import OpenAI from 'openai';
-
-// Initialize OpenAI client
-const getOpenAI = () => {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new Error('OPENAI_API_KEY is not defined');
-  }
-  return new OpenAI({
-    apiKey: apiKey,
-  });
-};
+import { getGeminiModel } from '@/lib/gemini';
 
 /**
  * POST /api/mock/ai/grade-essay

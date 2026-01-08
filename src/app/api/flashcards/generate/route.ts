@@ -6,24 +6,13 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import { getGeminiModel } from '@/lib/gemini';
 import {
   FlashcardGenerateRequest,
   FlashcardDeck,
   Flashcard,
   FlashcardDifficulty,
 } from '@/types/domain';
-
-// Initialize OpenAI client
-const getOpenAI = () => {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new Error('OPENAI_API_KEY is not defined');
-  }
-  return new OpenAI({
-    apiKey: apiKey,
-  });
-};
 
 // Maximum content length
 const MAX_CONTENT_LENGTH = 6000;
@@ -53,14 +42,6 @@ Trả về JSON với cấu trúc FlashcardDeck. Không thêm markdown code bloc
 
 export async function POST(request: NextRequest) {
   try {
-    // Check if OpenAI API key is configured
-    if (!process.env.OPENAI_API_KEY) {
-      return NextResponse.json(
-        { error: 'Tính năng tạo flashcard chưa được cấu hình. Vui lòng liên hệ quản trị viên.' },
-        { status: 503 }
-      );
-    }
-
     // Parse request body
     const body: FlashcardGenerateRequest = await request.json();
     const {
@@ -110,20 +91,17 @@ export async function POST(request: NextRequest) {
       difficulty,
     });
 
-    // Call OpenAI
-    const openai = getOpenAI();
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: userPrompt },
-      ],
+    const fullPrompt = `${SYSTEM_PROMPT}\n\n${userPrompt}`;
+
+    // Call Gemini
+    const model = getGeminiModel('gemini-1.5-flash', {
+      responseMimeType: 'application/json',
       temperature: 0.7,
-      max_tokens: 4000,
-      response_format: { type: 'json_object' },
     });
 
-    const responseText = completion.choices[0]?.message?.content;
+    const result = await model.generateContent(fullPrompt);
+    const responseText = result.response.text();
+
     if (!responseText) {
       return NextResponse.json(
         { error: 'Không nhận được phản hồi từ AI' },
@@ -147,23 +125,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ deck: parsedDeck });
   } catch (error) {
     console.error('Flashcard generation error:', error);
-
-    // Handle specific OpenAI errors
-    if (error instanceof OpenAI.APIError) {
-      if (error.status === 401) {
-        return NextResponse.json(
-          { error: 'Lỗi xác thực OpenAI API. Vui lòng kiểm tra API key.' },
-          { status: 500 }
-        );
-      }
-      if (error.status === 429) {
-        return NextResponse.json(
-          { error: 'Quá nhiều yêu cầu. Vui lòng thử lại sau.' },
-          { status: 429 }
-        );
-      }
-    }
-
     return NextResponse.json(
       { error: 'Không thể tạo flashcard. Vui lòng thử lại.' },
       { status: 500 }

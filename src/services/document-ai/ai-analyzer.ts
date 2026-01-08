@@ -5,8 +5,8 @@
  * educational materials (questions, summaries, lesson plans, etc.)
  */
 
-import OpenAI from 'openai';
 import { v4 as uuidv4 } from 'uuid';
+import { getGeminiModel } from '@/lib/gemini';
 import {
   ExtractedDocument,
   AIDocumentAnalysis,
@@ -14,16 +14,6 @@ import {
   AIGenerationMode,
   GeneratedQuestion,
 } from '@/types/domain';
-
-const getOpenAI = () => {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new Error('OPENAI_API_KEY is not defined');
-  }
-  return new OpenAI({
-    apiKey: apiKey,
-  });
-};
 
 /**
  * Analyze document content and extract key information
@@ -53,16 +43,13 @@ Hãy phân tích và trả về JSON với cấu trúc sau:
 
 Chỉ trả về JSON, không có text khác.`;
 
-  const openai = getOpenAI();
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [{ role: 'user', content: prompt }],
+  const model = getGeminiModel('gemini-1.5-flash', {
+    responseMimeType: 'application/json',
     temperature: 0.3,
-    max_tokens: 2000,
-    response_format: { type: 'json_object' },
   });
 
-  const content = response.choices[0]?.message?.content || '{}';
+  const result = await model.generateContent(prompt);
+  const content = result.response.text();
   const analysis = JSON.parse(content);
 
   return {
@@ -146,19 +133,16 @@ Trả về JSON với cấu trúc:
 
 Chỉ trả về JSON, không có text khác.`;
 
-  const openai = getOpenAI();
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [{ role: 'user', content: prompt }],
+  const model = getGeminiModel('gemini-1.5-flash', {
+    responseMimeType: 'application/json',
     temperature: 0.7,
-    max_tokens: 4000,
-    response_format: { type: 'json_object' },
   });
 
-  const content = response.choices[0]?.message?.content || '{"questions":[]}';
-  const result = JSON.parse(content);
+  const result = await model.generateContent(prompt);
+  const content = result.response.text();
+  const parsed = JSON.parse(content);
 
-  return (result.questions || []).map((q: Record<string, unknown>) => ({
+  return (parsed.questions || []).map((q: Record<string, unknown>) => ({
     type: q.type === 'essay' ? 'essay' : 'mcq',
     prompt: q.prompt as string,
     choices: q.choices as string[] | undefined,
@@ -209,19 +193,16 @@ Trả về JSON:
 
 Chỉ trả về JSON.`;
 
-  const openai = getOpenAI();
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [{ role: 'user', content: prompt }],
+  const model = getGeminiModel('gemini-1.5-flash', {
+    responseMimeType: 'application/json',
     temperature: 0.5,
-    max_tokens: 2000,
-    response_format: { type: 'json_object' },
   });
 
-  const content = response.choices[0]?.message?.content || '{"lessonOutline":[]}';
-  const result = JSON.parse(content);
+  const result = await model.generateContent(prompt);
+  const content = result.response.text();
+  const parsed = JSON.parse(content);
 
-  return result.lessonOutline || [];
+  return parsed.lessonOutline || [];
 }
 
 /**
@@ -257,19 +238,16 @@ Trả về JSON:
 
 Chỉ trả về JSON.`;
 
-  const openai = getOpenAI();
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [{ role: 'user', content: prompt }],
+  const model = getGeminiModel('gemini-1.5-flash', {
+    responseMimeType: 'application/json',
     temperature: 0.5,
-    max_tokens: 2000,
-    response_format: { type: 'json_object' },
   });
 
-  const content = response.choices[0]?.message?.content || '{"studyGuide":[]}';
-  const result = JSON.parse(content);
+  const result = await model.generateContent(prompt);
+  const content = result.response.text();
+  const parsed = JSON.parse(content);
 
-  return result.studyGuide || [];
+  return parsed.studyGuide || [];
 }
 
 /**
@@ -304,19 +282,16 @@ Trả về JSON:
   "summary": "Nội dung tóm tắt"
 }`;
 
-  const openai = getOpenAI();
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [{ role: 'user', content: prompt }],
+  const model = getGeminiModel('gemini-1.5-flash', {
+    responseMimeType: 'application/json',
     temperature: 0.3,
-    max_tokens: 1000,
-    response_format: { type: 'json_object' },
   });
 
-  const content = response.choices[0]?.message?.content || '{"summary":""}';
-  const result = JSON.parse(content);
+  const result = await model.generateContent(prompt);
+  const content = result.response.text();
+  const parsed = JSON.parse(content);
 
-  return result.summary || analysis.summary;
+  return parsed.summary || analysis.summary;
 }
 
 /**

@@ -1,17 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GeneratedQuestion, GenerateQuestionsRequest } from '@/types/domain';
-import OpenAI from 'openai';
-
-// Initialize OpenAI client
-const getOpenAI = () => {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new Error('OPENAI_API_KEY is not defined');
-  }
-  return new OpenAI({
-    apiKey: apiKey,
-  });
-};
+import { getGeminiModel } from '@/lib/gemini';
 
 /**
  * POST /api/mock/ai/generate-questions
@@ -49,14 +38,15 @@ export async function POST(request: NextRequest) {
     const questionType = body.questionType || 'mixed';
     const count = body.numberOfQuestions;
 
-    // Check if real AI is enabled and OpenAI API key is configured
+    // Check if real AI is enabled and Gemini API key is configured
     const useRealAI = process.env.USE_REAL_AI === 'true';
+    const hasGeminiKey = !!(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY);
 
-    if (!useRealAI || !process.env.OPENAI_API_KEY) {
+    if (!useRealAI || !hasGeminiKey) {
       if (!useRealAI) {
         console.log('USE_REAL_AI=false, using mock questions');
       } else {
-        console.warn('OpenAI API key not configured, falling back to mock data');
+        console.warn('Gemini API key not configured, falling back to mock data');
       }
       const questions = generateMockQuestions(body.topic, difficulty, count, questionType);
       return NextResponse.json({
@@ -74,8 +64,8 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Generate questions using OpenAI
-    const questions = await generateQuestionsWithOpenAI(body.topic, difficulty, count, questionType);
+    // Generate questions using Gemini
+    const questions = await generateQuestionsWithGemini(body.topic, difficulty, count, questionType);
 
     return NextResponse.json({
       success: true,
@@ -86,14 +76,14 @@ export async function POST(request: NextRequest) {
           difficulty,
           requestedCount: count,
           generatedCount: questions.length,
-          source: 'openai',
+          source: 'gemini',
         },
       },
     });
   } catch (error) {
     console.error('Error generating questions:', error);
 
-    // If OpenAI fails, fall back to mock data
+    // If AI fails, fall back to mock data
     try {
       const body: GenerateQuestionsRequest = await request.clone().json();
       const questions = generateMockQuestions(
@@ -125,9 +115,9 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Generate questions using OpenAI API
+ * Generate questions using Gemini API
  */
-async function generateQuestionsWithOpenAI(
+async function generateQuestionsWithGemini(
   topic: string,
   difficulty: 'easy' | 'medium' | 'hard',
   count: number,
@@ -179,22 +169,34 @@ Trả về JSON array với format sau (KHÔNG có text khác ngoài JSON):
   }
 ]`;
 
-  const openai = getOpenAI();
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPrompt },
-    ],
+  const fullPrompt = `${systemPrompt}\n\n${userPrompt}`;
+
+  const model = getGeminiModel('gemini-1.5-flash', {
+    responseMimeType: 'application/json',
     temperature: 0.7,
-    max_tokens: 4096,
   });
 
-  const content = response.choices[0]?.message?.content || '[]';
+  const result = await model.generateContent(fullPrompt);
+  const content = result.response.text();
 
-  // Extract JSON from response
+  // Extract JSON from response if needed (though responseMimeType usually handles it)
   const jsonMatch = content.match(/\[[\s\S]*\]/);
+
   if (!jsonMatch) {
+    // Try parsing full content if no array brackets found (sometimes it wraps in object)
+    try {
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed)) return parsed as GeneratedQuestion[]; // TODO: map properly
+      // If it's wrapped in { questions: [] }
+      if (parsed.questions && Array.isArray(parsed.questions)) return parsed.questions.map((q: any) => ({
+        type: q.type,
+        prompt: q.prompt,
+        choices: q.type === 'mcq' ? q.choices : undefined,
+        correctAnswerIndex: q.type === 'mcq' ? q.correctAnswerIndex : undefined,
+        maxScore: q.maxScore || (q.type === 'mcq' ? 1 : 2),
+        source: 'ai' as const,
+      }));
+    } catch { }
     throw new Error('No JSON array found in response');
   }
 
